@@ -51,10 +51,9 @@ class _FlagCatalogState extends State<FlagCatalog> {
     );
   }
 
-  /// Gets a random flag that is not found and returns its image asset link.
   Widget flagTile(int index) {
-    String imageLink = "assets/country-flags/${CountriesApi.countries[index].toLowerCase()}.png";
-    String countryName = CountriesApi.getNameFromKey(CountriesApi.countries[index])!;
+    String imageLink = "assets/country-flags/${CountriesApi.allCountries[index].toLowerCase()}.png";
+    String countryName = CountriesApi.getNameFromKey(CountriesApi.allCountries[index])!;
 
     return Card(
       color: const Color.fromARGB(255, 186, 186, 187),

@@ -1,11 +1,10 @@
 import 'dart:math';
 
+import 'package:flagguesser/pages/flags_preset_page.dart';
 import 'package:flagguesser/widgets/drawer.dart';
 import 'package:flagguesser/widgets/square_button.dart';
 import 'package:flagguesser/services/countries.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,19 +13,15 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  TextEditingController countryNameTextField = TextEditingController();
-  
-  int countriesFound = 0;
-  double countriesFoundPercentage = 0;
-  late String imageLink;
-  late int countryIndex;
-  late String answer;
-  late FocusNode countryNameInputFocusNode;
+class FlagGuessingData {
+  static int countriesFound = 0;
+  static double countriesFoundPercentage = 0;
+  static late String imageLink;
+  static late int countryIndex;
+  static late String countryKey;
+  static late String answer;
 
-  bool showAnswer = false;
-
-  List<String> countries = [
+  static List<String> countries = [
     "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AO", "AQ", "AR", "AS", "AT", "AU", "AW", "AX", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ",
     "BL", "BM", "BN", "BO", "BQ", "BR", "BS", "BT", "BV", "BW", "BY", "BZ", "CA", "CC", "CD", "CF", "CG", "CH", "CI", "CK", "CL", "CM", "CN", "CO", "CR",
     "CU", "CV", "CW", "CX", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "EH", "ER", "ES", "ET", "EU", "FI", "FJ", "FK", "FM", "FO",
@@ -39,13 +34,25 @@ class _HomePageState extends State<HomePage> {
     "TL", "TM", "TN", "TO", "TR", "TT", "TV", "TW", "TZ", "UA", "UG", "UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", "XK",
     "YE", "YT", "ZA", "ZM", "ZW",
   ]; // length: 255
+}
+
+class _HomePageState extends State<HomePage> {
+  TextEditingController countryNameTextField = TextEditingController();
+  
+  late FocusNode countryNameInputFocusNode;
+
+  bool showAnswer = false;
 
   @override
   void initState() {
     super.initState();
 
     countryNameInputFocusNode = FocusNode();
-    generateNextFlag();
+
+    if(FlagGuessingData.countriesFound == 0) {
+      FlagGuessingData.countries = CountriesApi.chosenPreset;
+      generateNextFlag();
+    }
   }
 
   @override
@@ -63,7 +70,7 @@ class _HomePageState extends State<HomePage> {
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 16),
-          child: Text("$countriesFound / 255 | ${countriesFoundPercentage.toStringAsPrecision(2)}%"),
+          child: Text("${FlagGuessingData.countriesFound} / ${CountriesApi.chosenPresetLength} | ${FlagGuessingData.countriesFoundPercentage.toStringAsPrecision(2)}%"),
         )
       ],
     );
@@ -77,12 +84,12 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.only(top: 40, bottom: 30),
             child: Column(
               children: [
-                Image.asset(imageLink, height: 150,),
+                Image.asset(FlagGuessingData.imageLink, height: 150,),
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Visibility(
                     visible: showAnswer,
-                    child: Text(answer, style: const TextStyle(fontSize: 16),)
+                    child: Text(FlagGuessingData.answer, style: const TextStyle(fontSize: 16),)
                   ),
                 ), 
               ],
@@ -98,15 +105,11 @@ class _HomePageState extends State<HomePage> {
               controller: countryNameTextField,
               focusNode: countryNameInputFocusNode,
               onChanged: (value) {
-                // if (value.contains("st")) {
-                //   value = value.replaceAll("st", "saint");
-                // }
-
-                if (value.toLowerCase() == answer.toLowerCase()) {
+                if (value.toLowerCase() == FlagGuessingData.answer.toLowerCase()) {
                   countryNameTextField.clear();
 
-                  countries.removeAt(countryIndex);
-                  countriesFound++;
+                  FlagGuessingData.countries.removeAt(FlagGuessingData.countryIndex);
+                  FlagGuessingData.countriesFound++;
                   generateNextFlag();
                 }
               },
@@ -179,9 +182,7 @@ class _HomePageState extends State<HomePage> {
                               actions: [
                                 TextButton(
                                   onPressed: () {
-                                    countries = CountriesApi.countries;
-                                    countriesFound = 0;
-                                    generateNextFlag();
+                                    restartGame();
                 
                                     Navigator.pop(context);
                                     setState(() { });
@@ -211,7 +212,11 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       SquareButton(
                         onPress: () {   
-                                 
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => 
+                              FlagPreset(refreshHomePageCallback: refreshPage)
+                            )
+                          );
                         }, 
                         text: "Change flags preset",
                         iconData: Icons.flag_circle,
@@ -234,12 +239,24 @@ class _HomePageState extends State<HomePage> {
     generateNextFlag();
   }
 
+  /// Restart game data and calls a new one to be generated.
+  void restartGame() {
+    FlagGuessingData.countries = CountriesApi.chosenPreset.toList();
+    FlagGuessingData.countriesFound = 0;
+    generateNextFlag();
+  }
+
+  void refreshPage() {
+    setState(() {});
+  }
+
   /// Gets a random flag that is not found and returns its image asset link.
   void generateNextFlag() {
-    countriesFoundPercentage = countriesFound / 255 * 100;
-    countryIndex = Random().nextInt(255 - countriesFound);
-    imageLink = "assets/country-flags/${countries[countryIndex].toLowerCase()}.png";
-    answer = CountriesApi.getNameFromKey(countries[countryIndex])!;
+    FlagGuessingData.countriesFoundPercentage = FlagGuessingData.countriesFound / CountriesApi.chosenPresetLength * 100;
+    FlagGuessingData.countryIndex = Random().nextInt(CountriesApi.chosenPresetLength - FlagGuessingData.countriesFound);
+    FlagGuessingData.countryKey = FlagGuessingData.countries[FlagGuessingData.countryIndex];
+    FlagGuessingData.imageLink = "assets/country-flags/${FlagGuessingData.countryKey.toLowerCase()}.png";
+    FlagGuessingData.answer = CountriesApi.getNameFromKey(FlagGuessingData.countryKey)!;
     
     setState(() { });
   }
