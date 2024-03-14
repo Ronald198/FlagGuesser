@@ -188,9 +188,9 @@ class _FlagPresetPageState extends State<FlagPresetPage> {
                       ),
                       SquareButton(
                         onPress: () async {
-                          FlagPreset customPreset = await DatabaseManager.instance.getFlagPresetById(1);
+                          FlagPreset? customPreset = await DatabaseManager.instance.getFlagPresetById(1);
 
-                          if (customPreset.flags.isNotEmpty)
+                          if (customPreset != null)
                           {
                             loadPreset(customPreset.flags);
                             await StaticVariables.sharedPrefs!.setString("chosenPreset", "customPreset");

@@ -49,8 +49,8 @@ void main() async {
         CountriesApi.loadPreset(CountriesApi.sporclePreset);
         break;
       case "customPreset":
-        FlagPreset customPreset = await DatabaseManager.instance.getFlagPresetById(1);
-        CountriesApi.loadPreset(customPreset.flags);
+        FlagPreset? customPreset = await DatabaseManager.instance.getFlagPresetById(1);
+        CountriesApi.loadPreset(customPreset!.flags);
         break;
     }
   }
