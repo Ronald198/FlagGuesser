@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:flagguesser/databaseManager.dart';
 import 'package:flagguesser/pages/flags_preset_page.dart';
 import 'package:flagguesser/widgets/drawer.dart';
 import 'package:flagguesser/widgets/square_button.dart';
 import 'package:flagguesser/services/countries.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,7 +24,7 @@ class FlagGuessingData {
   static late String countryKey;
   static late String answer;
 
-  static List<String> countries = [
+  static List<String> countriesToFind = [
     "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AO", "AQ", "AR", "AS", "AT", "AU", "AW", "AX", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ",
     "BL", "BM", "BN", "BO", "BQ", "BR", "BS", "BT", "BV", "BW", "BY", "BZ", "CA", "CC", "CD", "CF", "CG", "CH", "CI", "CK", "CL", "CM", "CN", "CO", "CR",
     "CU", "CV", "CW", "CX", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "EH", "ER", "ES", "ET", "EU", "FI", "FJ", "FK", "FM", "FO",
@@ -34,6 +37,8 @@ class FlagGuessingData {
     "TL", "TM", "TN", "TO", "TR", "TT", "TV", "TW", "TZ", "UA", "UG", "UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", "XK",
     "YE", "YT", "ZA", "ZM", "ZW",
   ]; // length: 255
+
+  static List<String> countriesSkipped = [];
 }
 
 class _HomePageState extends State<HomePage> {
@@ -42,6 +47,7 @@ class _HomePageState extends State<HomePage> {
   late FocusNode countryNameInputFocusNode;
 
   bool showAnswer = false;
+  bool showTip = false;
 
   @override
   void initState() {
@@ -50,7 +56,7 @@ class _HomePageState extends State<HomePage> {
     countryNameInputFocusNode = FocusNode();
 
     if(FlagGuessingData.countriesFound == 0) {
-      FlagGuessingData.countries = CountriesApi.chosenPreset;
+      FlagGuessingData.countriesToFind = CountriesApi.chosenPreset.toList();
       generateNextFlag();
     }
   }
@@ -70,7 +76,7 @@ class _HomePageState extends State<HomePage> {
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 16),
-          child: Text("${FlagGuessingData.countriesFound} / ${CountriesApi.chosenPresetLength} | ${FlagGuessingData.countriesFoundPercentage.toStringAsPrecision(2)}%"),
+          child: Text("${FlagGuessingData.countriesFound} / ${CountriesApi.chosenPresetLength} | ${FlagGuessingData.countriesFoundPercentage.toStringAsFixed(2)}%"),
         )
       ],
     );
@@ -88,7 +94,7 @@ class _HomePageState extends State<HomePage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Visibility(
-                    visible: showAnswer,
+                    visible: showAnswer || showTip,
                     child: Text(FlagGuessingData.answer, style: const TextStyle(fontSize: 16),)
                   ),
                 ), 
@@ -96,7 +102,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Padding(
-            padding: showAnswer 
+            padding: showAnswer || showTip
             ? 
               const EdgeInsets.only(left: 15, right: 15)
             :
@@ -105,13 +111,7 @@ class _HomePageState extends State<HomePage> {
               controller: countryNameTextField,
               focusNode: countryNameInputFocusNode,
               onChanged: (value) {
-                if (value.toLowerCase() == FlagGuessingData.answer.toLowerCase()) {
-                  countryNameTextField.clear();
-
-                  FlagGuessingData.countries.removeAt(FlagGuessingData.countryIndex);
-                  FlagGuessingData.countriesFound++;
-                  generateNextFlag();
-                }
+                checkIfFound(value);
               },
               onSubmitted: (value) {
                 if (value == "") {
@@ -121,11 +121,28 @@ class _HomePageState extends State<HomePage> {
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    countryNameTextField.clear();
-                  },
-                  icon: const Icon(Icons.clear_rounded),
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        showTip = !showTip;
+                        
+                        setState(() { });
+                      },
+                      icon: showTip 
+                      ?
+                        const Icon(Icons.lightbulb_outline)
+                      :
+                        const Icon(Icons.lightbulb),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        countryNameTextField.clear();
+                      },
+                      icon: const Icon(Icons.clear_rounded),
+                    ),
+                  ],
                 )
               ),
             ),
@@ -211,10 +228,61 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       SquareButton(
+                        onPress: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Confirm"),
+                                content: const Text("This will override the current custom preset. Are you sure you want to continue?"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () async {   
+                                      List<String> customPreset = [];
+                                      customPreset = FlagGuessingData.countriesSkipped.toList();
+                                      customPreset += FlagGuessingData.countriesToFind.toList();
+
+                                      String flags = json.encode(customPreset);
+
+                                      int res = await DatabaseManager.instance.updateCustomPreset(flags, 1);
+
+                                      if (res != 0)
+                                      {
+                                        Fluttertoast.showToast(msg: "Saved flags to custom preset!");
+                                      }
+                                      else
+                                      {
+                                        Fluttertoast.showToast(msg: "Error while saving to preset!");
+                                      }
+
+                                      if (context.mounted)
+                                      {
+                                        Navigator.pop(context);
+                                      }
+                                    }, 
+                                    child: const Text("Yes"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    
+                                      return;
+                                    },
+                                    child: const Text("No"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        text: "Save rest to custom",
+                        iconData: Icons.save,
+                      ),
+                      SquareButton(
                         onPress: () {   
                           Navigator.of(context).push(
                             MaterialPageRoute(builder: (context) => 
-                              FlagPreset(refreshHomePageCallback: refreshPage)
+                              FlagPresetPage(refreshHomePageCallback: refreshPage)
                             )
                           );
                         }, 
@@ -232,16 +300,31 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Checks if the user has given the correct answer and generates a flag if yes.
+  void checkIfFound(String value) {
+    if (value.toLowerCase() == FlagGuessingData.answer.toLowerCase()) {
+      countryNameTextField.clear();
+
+      FlagGuessingData.countriesToFind.removeAt(FlagGuessingData.countryIndex);
+      FlagGuessingData.countriesFound++;
+      generateNextFlag();
+    }
+  }
+
   /// Skips flag and calls a new one to be generated.
   void skipFlag() {
     countryNameTextField.clear();
     countryNameInputFocusNode.requestFocus();
+
+    FlagGuessingData.countriesSkipped.add(FlagGuessingData.countryKey);
+    FlagGuessingData.countriesToFind.removeAt(FlagGuessingData.countryIndex);
+
     generateNextFlag();
   }
 
   /// Restart game data and calls a new one to be generated.
   void restartGame() {
-    FlagGuessingData.countries = CountriesApi.chosenPreset.toList();
+    FlagGuessingData.countriesToFind = CountriesApi.chosenPreset.toList();
     FlagGuessingData.countriesFound = 0;
     generateNextFlag();
   }
@@ -253,10 +336,29 @@ class _HomePageState extends State<HomePage> {
   /// Gets a random flag that is not found and returns its image asset link.
   void generateNextFlag() {
     FlagGuessingData.countriesFoundPercentage = FlagGuessingData.countriesFound / CountriesApi.chosenPresetLength * 100;
-    FlagGuessingData.countryIndex = Random().nextInt(CountriesApi.chosenPresetLength - FlagGuessingData.countriesFound);
-    FlagGuessingData.countryKey = FlagGuessingData.countries[FlagGuessingData.countryIndex];
-    FlagGuessingData.imageLink = "assets/country-flags/${FlagGuessingData.countryKey.toLowerCase()}.png";
-    FlagGuessingData.answer = CountriesApi.getNameFromKey(FlagGuessingData.countryKey)!;
+
+    if(FlagGuessingData.countriesFound != CountriesApi.chosenPresetLength)
+    {
+      if (FlagGuessingData.countriesToFind.isEmpty)
+      {
+        FlagGuessingData.countriesToFind = FlagGuessingData.countriesSkipped.toList();
+        FlagGuessingData.countriesSkipped = [];
+      }
+
+      FlagGuessingData.countryIndex = Random().nextInt(CountriesApi.chosenPresetLength - FlagGuessingData.countriesFound - FlagGuessingData.countriesSkipped.length);
+      FlagGuessingData.countryKey = FlagGuessingData.countriesToFind[FlagGuessingData.countryIndex];
+      FlagGuessingData.imageLink = "assets/country-flags/${FlagGuessingData.countryKey.toLowerCase()}.png";
+      FlagGuessingData.answer = CountriesApi.getNameFromKey(FlagGuessingData.countryKey)!;
+    }
+    else // You won
+    {
+      FlagGuessingData.countriesFoundPercentage = 100.0;
+    }
+
+    if (showTip)
+    {
+      showTip = false;
+    }
     
     setState(() { });
   }
