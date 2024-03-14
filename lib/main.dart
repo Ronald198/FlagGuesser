@@ -1,12 +1,60 @@
 import 'package:flagguesser/constants.dart';
+import 'package:flagguesser/databaseManager.dart';
 import 'package:flagguesser/pages/home_page.dart';
+import 'package:flagguesser/services/countries.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StaticVariables {
   static int pageIndex = 0;
+  static SharedPreferences? sharedPrefs;
 }
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  StaticVariables.sharedPrefs = await SharedPreferences.getInstance();
+
+  if (!StaticVariables.sharedPrefs!.containsKey("chosenPreset"))
+  {
+    await StaticVariables.sharedPrefs!.setString("chosenPreset", "worldwidePreset");
+    CountriesApi.loadPreset(CountriesApi.allCountries);
+  }
+  else
+  {
+    String chosenPreset = StaticVariables.sharedPrefs!.getString("chosenPreset")!;
+
+    switch (chosenPreset) {
+      case "worldwidePreset":
+        CountriesApi.loadPreset(CountriesApi.allCountries);
+        break;
+      case "europePreset":
+        CountriesApi.loadPreset(CountriesApi.europePreset);
+        break;
+      case "asiaPreset":
+        CountriesApi.loadPreset(CountriesApi.asiaPreset);     
+        break;
+      case "africaPreset":
+        CountriesApi.loadPreset(CountriesApi.africaPreset);
+        break;
+      case "northAmericaPreset":
+        CountriesApi.loadPreset(CountriesApi.northAmericaPreset);
+        break;
+      case "southAmericaPreset":
+        CountriesApi.loadPreset(CountriesApi.southAmericaPreset);
+        break;
+      case "oceaniaPreset":
+        CountriesApi.loadPreset(CountriesApi.oceaniaPreset);
+        break;
+      case "sporclePreset":
+        CountriesApi.loadPreset(CountriesApi.sporclePreset);
+        break;
+      case "customPreset":
+        FlagPreset customPreset = await DatabaseManager.instance.getFlagPresetById(1);
+        CountriesApi.loadPreset(customPreset.flags);
+        break;
+    }
+  }
+
   runApp(const FlagGuesserMain());
 }
 

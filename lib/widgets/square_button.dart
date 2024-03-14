@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 
 class SquareButton extends StatelessWidget {
   final VoidCallback? onPress;
+  final Color? backgroundColor;
   final String text;
   final IconData iconData;
 
-  const SquareButton({super.key, required this.onPress, required this.text, required this.iconData });
+  const SquareButton({super.key, required this.onPress, this.backgroundColor, required this.text, required this.iconData });
 
   @override
   Widget build(BuildContext context) {
     return Container( // Toggle Answer visibilty
-      color: Colors.blue.shade800,
+      color: backgroundColor ?? Colors.blue.shade800,
       height: 100,
       width: 100,
       child: InkWell(
