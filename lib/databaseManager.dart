@@ -1,6 +1,7 @@
 // ignore_for_file: non_constant_identifier_names, file_names, avoid_print, no_leading_underscores_for_local_identifiers
 import 'dart:convert';
 
+// ignore: no_leading_underscores_for_library_prefixes, depend_on_referenced_packages
 import 'package:path/path.dart' as _path;
 import 'package:sqflite/sqflite.dart';
 

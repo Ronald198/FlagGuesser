@@ -7,7 +7,6 @@ import 'package:flagguesser/pages/home_page.dart';
 import 'package:flagguesser/services/countries.dart';
 import 'package:flagguesser/widgets/square_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class FlagPresetPage extends StatefulWidget {
@@ -46,7 +45,7 @@ class _FlagPresetPageState extends State<FlagPresetPage> {
                       onPressed: () async {
                         List<String> customPreset = [];
                         customPreset = CountriesApi.chosenPreset.toList();
-                        
+
                         String flags = json.encode(customPreset);
                         int res = await DatabaseManager.instance.updateCustomPreset(flags, 1);
 
@@ -118,14 +117,22 @@ class _FlagPresetPageState extends State<FlagPresetPage> {
                       ),
                       SquareButton(
                         onPress: () {
-
+                          CountriesApi.chosenPreset = CountriesApi.europePreset.toList();
+                          CountriesApi.chosenPresetLength = CountriesApi.europePreset.length;
+                          
+                          generateFlag();    
+                          Fluttertoast.showToast(msg: "Loaded preset!");
                         },
                         text: "Europe\npreset",
                         iconData: Icons.data_array
                       ),
                       SquareButton(
                         onPress: () {
+                          CountriesApi.chosenPreset = CountriesApi.africaPreset.toList();
+                          CountriesApi.chosenPresetLength = CountriesApi.africaPreset.length;
                           
+                          generateFlag();    
+                          Fluttertoast.showToast(msg: "Loaded preset!");
                         },
                         text: "Africa\npreset",
                         iconData: Icons.data_array
@@ -140,21 +147,32 @@ class _FlagPresetPageState extends State<FlagPresetPage> {
                     children: [
                       SquareButton(
                         onPress: () {
-
+                          CountriesApi.chosenPreset = CountriesApi.asiaPreset.toList();
+                          CountriesApi.chosenPresetLength = CountriesApi.asiaPreset.length;
+                          
+                          generateFlag();    
+                          Fluttertoast.showToast(msg: "Loaded preset!");
                         },
                         text: "Asia\npreset",
                         iconData: Icons.data_array
                       ),
                       SquareButton(
                         onPress: () {
-                  
+                          CountriesApi.chosenPreset = CountriesApi.northAmericaPreset.toList();
+                          CountriesApi.chosenPresetLength = CountriesApi.northAmericaPreset.length;
+                          
+                          generateFlag();    
+                          Fluttertoast.showToast(msg: "Loaded preset!");
                         },
                         text: "N America preset",
                         iconData: Icons.data_array
                       ),
                       SquareButton(
                         onPress: () {
+                          CountriesApi.chosenPreset = CountriesApi.southAmericaPreset.toList();
+                          CountriesApi.chosenPresetLength = CountriesApi.southAmericaPreset.length;
                           
+                          generateFlag();  
                         },
                         text: "S America\npreset",
                         iconData: Icons.data_array
@@ -169,19 +187,22 @@ class _FlagPresetPageState extends State<FlagPresetPage> {
                     children: [
                       SquareButton(
                         onPress: () {
+                          CountriesApi.chosenPreset = CountriesApi.oceaniaPreset.toList();
+                          CountriesApi.chosenPresetLength = CountriesApi.oceaniaPreset.length;
                           
+                          generateFlag();  
                         },
                         text: "Oceania\npreset",
                         iconData: Icons.data_array
                       ),
                       SquareButton(
                         onPress: () async {
-                          FlagPreset notFound = await DatabaseManager.instance.getFlagPresetById(1);
+                          FlagPreset customPreset = await DatabaseManager.instance.getFlagPresetById(1);
 
-                          if (notFound.flags.isNotEmpty)
+                          if (customPreset.flags.isNotEmpty)
                           {
-                            CountriesApi.chosenPreset = notFound.flags.toList();
-                            CountriesApi.chosenPresetLength = notFound.flags.length;
+                            CountriesApi.chosenPreset = customPreset.flags.toList();
+                            CountriesApi.chosenPresetLength = customPreset.flags.length;
                             
                             generateFlag();
                             Fluttertoast.showToast(msg: "Loaded preset!");

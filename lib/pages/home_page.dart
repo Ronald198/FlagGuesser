@@ -339,7 +339,7 @@ class _HomePageState extends State<HomePage> {
 
     if(FlagGuessingData.countriesFound != CountriesApi.chosenPresetLength)
     {
-      if (FlagGuessingData.countriesToFind.isEmpty)
+      if (FlagGuessingData.countriesToFind.isEmpty) // every country was seen once, restore list to see all again
       {
         FlagGuessingData.countriesToFind = FlagGuessingData.countriesSkipped.toList();
         FlagGuessingData.countriesSkipped = [];

@@ -1,5 +1,6 @@
 class CountriesApi {
   static int chosenPresetLength = 255;
+  
   static List<String> chosenPreset = [
     "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AO", "AQ", "AR", "AS", "AT", "AU", "AW", "AX", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ",
     "BL", "BM", "BN", "BO", "BQ", "BR", "BS", "BT", "BV", "BW", "BY", "BZ", "CA", "CC", "CD", "CF", "CG", "CH", "CI", "CK", "CL", "CM", "CN", "CO", "CR",
@@ -40,11 +41,34 @@ class CountriesApi {
     "VU", "WS", "XK", "YE", "ZA", "ZM", "ZW",
   ];
   
-  static List<String> europePreset = [];
+  static List<String> europePreset = [
+    "AD", "AL", "AM", "AT", "AZ", "BA", "BE", "BG", "BY", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "EU", "FI", "FR", "GB", "GE", "GR", "HR", "HU", "IE", 
+    "IS", "IT", "KZ", "LI", "LT", "LU", "LV", "MC", "MD", "ME", "MK", "PL", "MT", "NL", "NO", "PT", "RO", "RS", "RU", "SE", "SI", "SK", "SM", "TR", "UA", "XK",
+  ];
 
-  static List<String> africaPreset = [];
+  static List<String> africaPreset = [
+    "AO", "BF", "BI", "BJ", "BW", "CD", "CF", "CG", "CI", "CM", "CV", "DJ", "DZ", "EG", "EH", "ER", "ET", "GA", "GH", "GM", "GN", "GQ", "GW", "KE", "KM",
+    "LR", "LS", "LY", "MA", "MG", "ML", "MR", "MU", "MW", "MZ", "NA", "NE", "NG", "RW", "SC", "SD", "SH", "SL", "SN", "SO", "SS", "ST", "SZ", "TD", "TG",
+    "TN", "TZ", "UG", "ZA", "ZM", "ZW",
+  ];
 
-  static List<String> asiaPreset = [];
+  static List<String> asiaPreset = [
+    "AE", "AF", "AM", "AZ", "BD", "BH", "BN", "BT", "CN", "CY", "GE", "HK", "ID", "IL", "IN", "IQ", "IR", "JO", "JP", "KG", "KH", "KP", "KR", "KW", "KZ",
+    "LA", "LB", "LK", "MM", "MN", "MO", "MV", "MY", "NP", "OM", "PH", "PK", "PS", "QA", "SA", "SG", "SY", "TH", "TJ", "TL", "TM", "TR", "TW", "UZ", "VN", "YE",
+  ];
+
+  static List<String> northAmericaPreset = [
+    "AG", "AI", "AW", "BB", "BL", "BS", "BZ", "CA", "CR", "CU", "CW", "DM", "DO", "GD", "GL", "GP", "GT", "HN", "HT", "JM", "KN", "KY", "LC", "MF", "MQ",
+    "MS", "MX", "NI", "PA", "PM", "PR", "SV", "SX", "TC", "TT", "US", "VC", "VG", "VI",
+  ];
+
+  static List<String> southAmericaPreset = [
+    "AR", "BO", "BR", "CL", "CO", "EC", "FK", "GF", "GY", "PE", "PY", "SR", "UY", "VE",
+  ];
+
+  static List<String> oceaniaPreset = [
+    "AS", "AU", "CK", "FJ", "FM", "GU", "KI", "MH", "MP", "NC", "NF", "NR", "NU", "NZ", "PF", "PG", "PN", "PW", "SB", "TK", "TO", "TV", "UM", "VU", "WF", "WS",
+  ];
 
   static String? getNameFromKey(String key) {
     Map<String, String> countriesMap = {
@@ -304,6 +328,7 @@ class CountriesApi {
       "ZM": "Zambia",
       "ZW": "Zimbabwe"
     };
+    
     return countriesMap[key];
   }
 }
