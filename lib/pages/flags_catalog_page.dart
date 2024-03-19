@@ -43,7 +43,7 @@ class _FlagCatalogState extends State<FlagCatalog> {
           ),
           children: [
             for (int i = 0; i < 255; i++) ...[
-              flagTile(i)
+              flagTile(CountriesApi.allCountries[i])
             ],
           ],
         ),
@@ -51,9 +51,9 @@ class _FlagCatalogState extends State<FlagCatalog> {
     );
   }
 
-  Widget flagTile(int index) {
-    String imageLink = "assets/country-flags/${CountriesApi.allCountries[index].toLowerCase()}.png";
-    String countryName = CountriesApi.getNameFromKey(CountriesApi.allCountries[index])!;
+  Widget flagTile(String countryISOCode) {
+    String imageLink = "assets/country-flags/${countryISOCode.toLowerCase()}.png";
+    String countryName = CountriesApi.getNameFromISOCode(countryISOCode)![0];
 
     return Card(
       color: const Color.fromARGB(255, 186, 186, 187),

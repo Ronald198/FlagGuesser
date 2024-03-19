@@ -23,7 +23,7 @@ class FlagGuessingData {
   static late String imageLink;
   static late int countryIndex;
   static late String countryKey;
-  static late String answer;
+  static late List<String> answerList;
 
   static late List<String> countriesToFind;
   static List<String> countriesSkipped = [];
@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.only(top: 6),
                   child: Visibility(
                     visible: showAnswer || showTip,
-                    child: Text(FlagGuessingData.answer, style: const TextStyle(fontSize: 16),)
+                    child: Text(FlagGuessingData.answerList[0], style: const TextStyle(fontSize: 16),)
                   ),
                 ), 
               ],
@@ -290,7 +290,7 @@ class _HomePageState extends State<HomePage> {
 
   /// Checks if the user has given the correct answer and generates a flag if yes.
   void checkIfFound(String value) {
-    if (value.toLowerCase() == FlagGuessingData.answer.toLowerCase()) {
+    if (FlagGuessingData.answerList.any((countryName) => countryName.toLowerCase() == value.toLowerCase())) {
       countryNameTextField.clear();
 
       FlagGuessingData.countriesToFind.removeAt(FlagGuessingData.countryIndex);
@@ -338,7 +338,7 @@ class _HomePageState extends State<HomePage> {
       FlagGuessingData.countryIndex = Random().nextInt(CountriesApi.chosenPresetLength - FlagGuessingData.countriesFound - FlagGuessingData.countriesSkipped.length);
       FlagGuessingData.countryKey = FlagGuessingData.countriesToFind[FlagGuessingData.countryIndex];
       FlagGuessingData.imageLink = "assets/country-flags/${FlagGuessingData.countryKey.toLowerCase()}.png";
-      FlagGuessingData.answer = CountriesApi.getNameFromKey(FlagGuessingData.countryKey)!;
+      FlagGuessingData.answerList = CountriesApi.getNameFromISOCode(FlagGuessingData.countryKey)!;
     }
     else // You won
     {

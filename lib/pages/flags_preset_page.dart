@@ -227,7 +227,7 @@ class _FlagPresetPageState extends State<FlagPresetPage> {
               ),
               children: [
                 for (int i = 0; i < 255; i++) ...[
-                  flagTile(i)
+                  flagTile(CountriesApi.allCountries[i])
                 ],
               ],
             ),
@@ -237,11 +237,10 @@ class _FlagPresetPageState extends State<FlagPresetPage> {
     );
   }
 
-  Widget flagTile(int index) {
+  Widget flagTile(String countryKey) {
     bool isContained = false;
-    String countryKey = CountriesApi.allCountries[index];
     String imageLink = "assets/country-flags/${countryKey.toLowerCase()}.png";
-    String countryName = CountriesApi.getNameFromKey(countryKey)!;
+    String countryName = CountriesApi.getNameFromISOCode(countryKey)![0];
 
     if (CountriesApi.chosenPreset.contains(countryKey))
     {
@@ -356,6 +355,45 @@ class _FlagPresetPageState extends State<FlagPresetPage> {
 
   /// Sets the chosen preset
   void loadPreset(List<String> presetChosen) {
+    if (FlagGuessingData.countriesFound != 0) // ongoing game
+    {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Confirm"),
+            content: const Text("Changing the preset restarts the current game. Are you sure you want to continue?"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  CountriesApi.chosenPreset = presetChosen.toList();
+                  CountriesApi.chosenPresetLength = presetChosen.length;
+                  
+                  generateFlag();
+                  Fluttertoast.showToast(msg: "Loaded preset!");
+
+                  Navigator.pop(context);
+
+                  return;
+                },
+                child: const Text("Yes"),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                
+                  return;
+                },
+                child: const Text("No"),
+              ),
+            ],
+          );
+        },
+      );
+
+      return;
+    }
+    
     CountriesApi.chosenPreset = presetChosen.toList();
     CountriesApi.chosenPresetLength = presetChosen.length;
     
@@ -371,7 +409,7 @@ class _FlagPresetPageState extends State<FlagPresetPage> {
     FlagGuessingData.countryIndex = Random().nextInt(CountriesApi.chosenPresetLength);
     FlagGuessingData.countryKey = FlagGuessingData.countriesToFind[FlagGuessingData.countryIndex];
     FlagGuessingData.imageLink = "assets/country-flags/${FlagGuessingData.countryKey.toLowerCase()}.png";
-    FlagGuessingData.answer = CountriesApi.getNameFromKey(FlagGuessingData.countryKey)!;
+    FlagGuessingData.answerList = CountriesApi.getNameFromISOCode(FlagGuessingData.countryKey)!;
 
     widget.refreshHomePageCallback();
     setState(() { });
